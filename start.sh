@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-riscv64-elf-gcc -Os -c -mcmodel=medany kernel.c -o main.o -ffreestanding
+riscv64-elf-gcc -c -mcmodel=medany kernel.c -o main.o -ffreestanding
 riscv64-elf-as -c entry.S -o entry.o
-riscv64-elf-ld -Os -T linker.ld -nostdlib main.o entry.o -o main.elf
+riscv64-elf-ld -T linker.ld -nostdlib main.o entry.o -o main.elf
 riscv64-unknown-elf-objcopy -O binary main.elf kernel.bin
 
 echo Info for future me, this is not actual qemu output.
@@ -11,6 +11,7 @@ echo -----------------------------
 
 qemu-system-riscv64 \
   -machine virt \
+  -cpu rv64,pmp=false \
   -m 16M \
   -nographic \
   -bios none \

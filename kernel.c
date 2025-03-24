@@ -5,18 +5,8 @@
 #include "uart.h"
 #include "strings.h"
 
-void run(uintptr_t address) {
-  void (*fptr)() = (void (*)())(uintptr_t)address;
-  fptr();
-  return;
-}
-
-void test(void) {
-  print("Hello World!\n");
-  return;
-}
-
 void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {  
+  uintptr_t trap_return_pointer;
   print("\nTRAP encountered! Something went horribly wrong\n");
   print("Cause: ");
   printbyte((char)cause);
@@ -27,25 +17,48 @@ void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {
   print("\nmtval: ");
   print32((int)tval);
   print("\n");
+
+  cvars[63] = 0xff;
+
+  trap_return_pointer = ((cvars[0]<<24) | (cvars[1]<<16) | (cvars[2]<<8) | (cvars[3])) & 0x00000000ffffffff;
   
-  while (1) {}
-  return;
+  void (*fptr)() = (void*)trap_return_pointer;
+  fptr();
 }
 
 #include "wozmon.c"
 
 void kmain(void) {
   print("init\n\n");
-  
-  // Output the address of the test function and execute it
-  char address_byte;
-  void (*fptr)() = &test;
-  print("0x");
-  for (int i=0; i<4; i++) {
-    address_byte = (char)(((uintptr_t)fptr >> ((3-i)*8))&0xff);
-    printbyte(address_byte);
+
+  char crash_flag = 0;
+  for (int i=0; i<64; i++) {
+    if (cvars[i]) {
+      print("cvars not wiped, soft reboot or crash occured\n");
+      crash_flag = 1;
+      break;
+    }
   }
-  print("\n\n");  
+  
+  if (!crash_flag) {
+    memset(cvars, 0x00, 64);
+    
+    for (int i=0; i<4; i++) {
+      cvars[i] = (char)(((int)kmain >> ((3-i)*8))&0xff);
+    }
+
+    cvars[4] = 0x80;
+
+    char address_byte;
+    print("cvars are stored at ");
+    for (int i=0; i<4; i++) {
+      address_byte = (char)(((int)cvars >> ((3-i)*8))&0xff);
+      printbyte(address_byte);
+    }
+    print("\n\n");
+  } else {
+    print("recovered from a crash\n\n");
+  }
 
   char input_buffer[256];
   

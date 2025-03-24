@@ -4,8 +4,8 @@
 // Sets a contingous range of bytes
 void memset(char* ptr, char byte, int length) {
   while (length) {
-    *ptr = byte;
     length--;
+    *(ptr+length) = byte;
   }
   return;
 }
@@ -13,8 +13,8 @@ void memset(char* ptr, char byte, int length) {
 // Copy number of bytes from source to destination
 void memcpy(char* ptr_to, char* ptr_from, int length) {
   while (length) {
-    *(ptr_to+length) = *(ptr_from+length);
     length--;
+    *(ptr_to+length) = *(ptr_from+length);
   }
   return;
 }

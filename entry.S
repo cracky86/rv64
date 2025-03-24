@@ -6,9 +6,6 @@ trap_vector:
     csrr a1, mepc         # Read the exception PC
     csrr a2, mtval        # Read the faulting address or instruction
     call trap_handler     # Call the C handler: trap_handler(mcause, mepc, mtval)
-    csrw mepc, a1         # Restore exception PC (if modified)
-    mret                  # Return from the trap
-
 	
 .section .init
 

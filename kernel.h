@@ -27,4 +27,13 @@ char *exceptions[] = {
   "Virtual instruction",
   "Store/AMO guest page fault"};
 
+char cvars[64];
+
+/*
+  Common variable (cvar) allocation:
+
+  0-3: trap return pointer
+  4-5: short address msb
+*/
+
 #endif
