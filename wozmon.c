@@ -62,9 +62,9 @@ void tokenize(char* input, char* split_command) {
 }
 
 void run(uintptr_t address) {
-  void (*fptr)() = (void (*)())(uintptr_t)address;
-  fptr();
-  return;
+  void *ptr = (void*)(address&0x00000000ffffffffULL);
+  print32((int)ptr);
+  goto *ptr;
 }
 
 void process_command(char* input) {
@@ -86,6 +86,8 @@ void process_command(char* input) {
 
   char current_char;
   char token_flag;
+
+  memset(bytes, 0x00, 9);
   
   // Set address_start, address_end, bytes, and other flags based on the tokenized input
   for (int token = 0; token<MAX_TOKENS; token++) {
@@ -232,8 +234,9 @@ void process_command(char* input) {
     }
     print("\n\n");
   } else {
+    print("\n");
     // Write bytes to memory
-    memcpy((char*)address_start, bytes, (int)num_bytes-1);
+    memcpy((char*)address_start, bytes, (int)num_bytes);
   }
 
 

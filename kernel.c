@@ -21,7 +21,7 @@ void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {
   cvars[63] = 0xff;
 
   trap_return_pointer = ((cvars[0]<<24) | (cvars[1]<<16) | (cvars[2]<<8) | (cvars[3])) & 0x00000000ffffffff;
-  
+
   void (*fptr)() = (void*)trap_return_pointer;
   fptr();
 }
