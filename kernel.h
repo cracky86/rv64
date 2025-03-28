@@ -1,6 +1,8 @@
 #ifndef __OS_H__
 #define __OS_H__
 
+int chksum = 0xffffffff;
+
 char *exceptions[] = {
   "Instruction address misaligned",
   "Instruction access fault",

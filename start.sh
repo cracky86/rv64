@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-riscv64-elf-gcc -march=rv64imacd_zicsr -mabi=lp64 -c -mcmodel=medany kernel.c -o kernel.o -ffreestanding
-riscv64-elf-as -march=rv64imacd_zicsr -mabi=lp64 -c entry.S -o entry.o
+riscv64-elf-gcc -c -mcmodel=medany kernel.c -o kernel.o -ffreestanding
+riscv64-elf-as -c entry.S -o entry.o
 riscv64-elf-ld -T linker.ld -nostdlib kernel.o entry.o -o kernel.elf
 riscv64-unknown-elf-objcopy -O binary kernel.elf kernel.bin
 

@@ -5,8 +5,10 @@
 #include "uart.h"
 #include "strings.h"
 
-void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {  
-  uintptr_t trap_return_pointer;
+void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {
+  if (cause>>32) {
+    return;
+  }
   print("\nTRAP encountered! Something went horribly wrong\n");
   print("Cause: ");
   printbyte((char)cause);
@@ -20,10 +22,11 @@ void trap_handler(uint64_t cause, uint64_t epc, uint64_t tval) {
 
   cvars[63] = 0xff;
 
-  trap_return_pointer = ((cvars[0]<<24) | (cvars[1]<<16) | (cvars[2]<<8) | (cvars[3])) & 0x00000000ffffffff;
+  uintptr_t trap_return_pointer = ((cvars[0]<<24) | (cvars[1]<<16) | (cvars[2]<<8) | (cvars[3])) & 0x00000000ffffffff;
 
   void (*fptr)() = (void*)trap_return_pointer;
   fptr();
+  return;
 }
 
 #include "wozmon.c"
@@ -55,8 +58,22 @@ void kmain(void) {
       address_byte = (char)(((int)cvars >> ((3-i)*8))&0xff);
       printbyte(address_byte);
     }
+    print("\nchecksum is ");
+    for (uintptr_t i=0x80000000; i<0x80000200; i++) {
+      chksum = (chksum >> 8) ^ (*(int*)i ^ chksum);
+    }
+    print32(chksum);
+    
     print("\n\n");
   } else {
+    int chksum_new = 0xffffffff;
+    for (uintptr_t i=0x80000000; i<0x80000200; i++) {
+      chksum_new = (chksum_new >> 8) ^ (*(int*)i ^ chksum_new);
+    }
+    if (chksum_new != chksum) {
+      print("kernel checksum mismatch\n");
+      while (1);
+    }
     print("recovered from a crash\n\n");
   }
 

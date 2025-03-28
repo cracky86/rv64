@@ -6,7 +6,6 @@ trap_vector:
     csrr a1, mepc         # Read the exception PC
     csrr a2, mtval        # Read the faulting address or instruction
     call trap_handler      # Call the C handler: trap_handler(mcause, mepc, mtval)
-    ret                    # Return from the trap
 
 .section .init
 
@@ -17,23 +16,34 @@ trap_vector:
 start:
     .cfi_startproc
 
+.option push
+.option norelax
+    la gp, global_pointer
+ 
+.option pop
     /* Setup stack */
     la sp, stack_top
 
     /* Clear the BSS section */
     la t5, bss_start
     la t6, bss_end
-bss_clear:	
-    sd zero, (t5)         # Clear the BSS section
+bss_clear:
+    la t0, trap_vector
+    csrw mtvec, t0
+
+    /*addi t0, zero, 8
+    csrw mstatus, t0
+    addi t0, t0, 120
+    csrw mie, t0*/
+
+    sd zero, (t5)
     addi t5, t5, 8
     bltu t5, t6, bss_clear
 
-    la x4, trap_vector
-    csrw mtvec, x4
-	
-    /* Jump to kernel! */
     la t0, kmain
-    jalr t0                # Jump to kmain
+    csrw mepc, t0
+
+    tail kmain	
 
     .cfi_endproc
 
